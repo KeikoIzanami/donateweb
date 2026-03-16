@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface OverlaySettings {
@@ -32,7 +32,7 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
   const queueRef = useRef<DonationAlert[]>([])
   const processingRef = useRef(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   // Preload audio on mount so it's ready to play instantly
   useEffect(() => {
@@ -110,7 +110,9 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
     return () => { supabase.removeChannel(channel) }
   }, [streamerId, addToQueue])
 
-  if (!currentAlert) return null
+  if (!currentAlert) return (
+    <style>{`html, body { background: transparent !important; margin: 0; padding: 0; overflow: hidden; }`}</style>
+  )
 
   return (
     <>
