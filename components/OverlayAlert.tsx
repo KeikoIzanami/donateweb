@@ -58,18 +58,22 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
   }, [settings.sound_enabled, settings.sound_url])
 
   const processQueue = useCallback(() => {
+    console.log('[Overlay] processQueue called, queue length:', queueRef.current.length, 'processing:', processingRef.current)
     if (processingRef.current || queueRef.current.length === 0) return
 
     processingRef.current = true
     const next = queueRef.current.shift()!
+    console.log('[Overlay] Processing alert:', next.donor_name, next.amount)
 
     setCurrentAlert(next)
     setVisible(true)
     playSound()
 
     setTimeout(() => {
+      console.log('[Overlay] Hiding alert')
       setVisible(false)
       setTimeout(() => {
+        console.log('[Overlay] Clearing alert')
         setCurrentAlert(null)
         processingRef.current = false
         processQueue()
