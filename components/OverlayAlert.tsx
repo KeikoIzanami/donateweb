@@ -124,9 +124,9 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
       <div
         style={{
           position: 'fixed',
-          bottom: '32px',
+          top: '50%',
           left: '50%',
-          transform: `translateX(-50%) translateY(${visible ? '0' : '24px'})`,
+          transform: `translate(-50%, -50%) translateY(${visible ? '0' : '24px'})`,
           opacity: visible ? 1 : 0,
           transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
           width: '100%',
