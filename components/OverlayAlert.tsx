@@ -26,8 +26,6 @@ interface OverlayAlertProps {
   settings: OverlaySettings
 }
 
-const TRANSPARENT_STYLE = 'html, body { background: transparent !important; margin: 0; padding: 0; overflow: hidden; }'
-
 export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps) {
   const [currentAlert, setCurrentAlert] = useState<DonationAlert | null>(null)
   const queueRef = useRef<DonationAlert[]>([])
@@ -86,61 +84,51 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
     return () => { supabase.removeChannel(channel) }
   }, [streamerId])
 
+  // Always render (even when no alert) so OBS can see it
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: TRANSPARENT_STYLE }} />
+    <div style={{
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '520px',
+      pointerEvents: 'none',
+      zIndex: 9999,
+      background: 'transparent',
+    }}>
       {currentAlert && (
         <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          maxWidth: '520px',
-          pointerEvents: 'none',
-          zIndex: 9999,
+          background: settings.bg_color,
+          border: `2px solid ${settings.accent_color}`,
+          borderRadius: '16px',
+          padding: '16px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
         }}>
-          <div style={{
-            background: settings.bg_color,
-            border: `2px solid ${settings.accent_color}`,
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: `0 8px 32px rgba(0,0,0,0.5)`,
-          }}>
-            {settings.alert_image_url && (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px 0' }}>
-                <img src={settings.alert_image_url} alt="Alert"
-                  style={{ maxHeight: '80px', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '50%',
+              background: settings.accent_color, color: settings.text_color,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '20px', fontWeight: 'bold',
+            }}>
+              {currentAlert.donor_name[0]?.toUpperCase() ?? '?'}
+            </div>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: settings.accent_color }}>
+                {currentAlert.donor_name}
               </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px' }}>
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '50%',
-                background: settings.accent_color, color: settings.text_color,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '18px', fontWeight: 'bold', flexShrink: 0,
-              }}>
-                {currentAlert.donor_name[0]?.toUpperCase() ?? '?'}
+              <div style={{ fontSize: '16px', color: '#4ade80', fontWeight: '600' }}>
+                +{Number(currentAlert.amount).toLocaleString('vi-VN')}đ
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ color: settings.accent_color, fontSize: `${settings.font_size}px`, fontWeight: 'bold' }}>
-                    {currentAlert.donor_name}
-                  </span>
-                  <span style={{ color: '#4ade80', fontSize: `${settings.font_size * 0.85}px`, fontWeight: '600' }}>
-                    +{Number(currentAlert.amount).toLocaleString('vi-VN')}đ
-                  </span>
+              {currentAlert.message && (
+                <div style={{ fontSize: '14px', color: settings.text_color, marginTop: '4px', opacity: 0.8 }}>
+                  {currentAlert.message}
                 </div>
-                {currentAlert.message && (
-                  <p style={{ color: settings.text_color, fontSize: `${settings.font_size * 0.75}px`, marginTop: '2px', opacity: 0.9 }}>
-                    {currentAlert.message}
-                  </p>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
