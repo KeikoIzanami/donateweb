@@ -61,11 +61,35 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
     }, settings.duration * 1000)
   }
 
+  const shownIdsRef = useRef<Set<string>>(new Set())
+
   const addToQueue = (donation: DonationAlert) => {
+    if (shownIdsRef.current.has(donation.id)) return
+    shownIdsRef.current.add(donation.id)
     queueRef.current.push(donation)
     if (!processingRef.current) processQueue()
   }
 
+  // Polling fallback for OBS (every 2s)
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const since = new Date(Date.now() - 10000).toISOString() // last 10s
+        const { data } = await supabase
+          .from('donations')
+          .select('*')
+          .eq('streamer_id', streamerId)
+          .in('status', ['confirmed', 'test'])
+          .gte('created_at', since)
+          .order('created_at', { ascending: true })
+        data?.forEach(d => addToQueue({ id: d.id, donor_name: d.donor_name, message: d.message, amount: d.amount }))
+      } catch {}
+    }
+    const interval = setInterval(poll, 2000)
+    return () => clearInterval(interval)
+  }, [streamerId])
+
+  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel(`overlay:${streamerId}`)
