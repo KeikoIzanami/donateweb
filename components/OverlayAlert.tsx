@@ -83,6 +83,8 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
   }, [processQueue])
 
   useEffect(() => {
+    console.log('[Overlay] Setting up realtime for streamer:', streamerId)
+
     const channel = supabase
       .channel(`overlay:${streamerId}`)
       .on(
@@ -94,8 +96,10 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
           filter: `streamer_id=eq.${streamerId}`,
         },
         (payload) => {
+          console.log('[Overlay] Received donation:', payload)
           const donation = payload.new as any
           if (donation.status === 'confirmed' || donation.status === 'test') {
+            console.log('[Overlay] Adding to queue:', donation)
             addToQueue({
               id: donation.id,
               donor_name: donation.donor_name,
@@ -105,9 +109,14 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('[Overlay] Subscription status:', status)
+      })
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      console.log('[Overlay] Cleaning up channel')
+      supabase.removeChannel(channel)
+    }
   }, [streamerId, addToQueue])
 
   if (!currentAlert) return (
