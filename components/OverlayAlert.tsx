@@ -30,7 +30,6 @@ const TRANSPARENT_STYLE = 'html, body { background: transparent !important; marg
 
 export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps) {
   const [currentAlert, setCurrentAlert] = useState<DonationAlert | null>(null)
-  const [visible, setVisible] = useState(false)
   const queueRef = useRef<DonationAlert[]>([])
   const processingRef = useRef(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -56,15 +55,11 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
     processingRef.current = true
     const next = queueRef.current.shift()!
     setCurrentAlert(next)
-    setVisible(true)
     playSound()
     setTimeout(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setCurrentAlert(null)
-        processingRef.current = false
-        processQueue()
-      }, 700)
+      setCurrentAlert(null)
+      processingRef.current = false
+      processQueue()
     }, settings.duration * 1000)
   }
 
@@ -99,9 +94,7 @@ export default function OverlayAlert({ streamerId, settings }: OverlayAlertProps
           position: 'fixed',
           top: '50%',
           left: '50%',
-          transform: `translate(-50%, -50%) translateY(${visible ? '0' : '30px'})`,
-          opacity: visible ? 1 : 0,
-          transition: 'opacity 0.4s ease, transform 0.4s ease',
+          transform: 'translate(-50%, -50%)',
           width: '90%',
           maxWidth: '520px',
           pointerEvents: 'none',
